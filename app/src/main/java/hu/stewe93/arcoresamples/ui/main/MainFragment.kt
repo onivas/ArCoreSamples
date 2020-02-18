@@ -8,16 +8,20 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import hu.stewe93.arcoresamples.R
+import kotlinx.android.synthetic.main.fragment_main.*
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 
 class MainFragment : Fragment(R.layout.fragment_main) {
 
-    private var yodaModel: ModelRenderable? = null
-    lateinit var arFragment: ArFragment
+    private val viewModel = MainViewModel()
+
+    private var model: ModelRenderable? = null
+    private lateinit var arFragment: ArFragment
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -26,6 +30,33 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
         loadModel()
 
+        bigger.setOnClickListener {
+            viewModel.increase()
+        }
+        smaller.setOnClickListener {
+            viewModel.decrease()
+        }
+        left.setOnClickListener {
+            viewModel.moveLeft()
+        }
+        right.setOnClickListener {
+            viewModel.moveRight()
+        }
+        front.setOnClickListener {
+            viewModel.moveFront()
+        }
+        back.setOnClickListener {
+            viewModel.moveBack()
+        }
+        turnLeft.setOnClickListener {
+            viewModel.turnLeft()
+        }
+        turnRight.setOnClickListener {
+            viewModel.turnRight()
+        }
+        delete.setOnClickListener {
+            viewModel.delete()
+        }
     }
 
     private fun initTapListener() {
@@ -35,15 +66,19 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             )
 
             anchorNode.setParent(arFragment.arSceneView.scene)
-            val yodaNode = Node()
-            yodaNode.renderable = yodaModel
-            yodaNode.setParent(anchorNode)
+            val node = Node()
+            node.setOnTapListener { hitTestResult, motionEvent ->
+                viewModel.setSelectedNode(hitTestResult.node, motionEvent)
+            }
+            node.localScale = Vector3(0.2.toFloat(), 0.2.toFloat(), 0.2.toFloat())
+            node.renderable = model
+            node.setParent(anchorNode)
         }
     }
 
     private fun loadModel() {
         lifecycleScope.launch {
-            yodaModel = ModelRenderable
+            model = ModelRenderable
                 .builder()
                 .setSource(
                     context,
